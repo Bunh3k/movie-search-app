@@ -106,7 +106,7 @@ export default function MovieApp() {
       } catch (err) {
         setMovies([]);
         setTotalResults(0);
-        setError("Failed to load rated movies");
+        setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setIsLoading(false);
       }
