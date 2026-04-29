@@ -1,19 +1,16 @@
 "use client";
 
 import { Pagination } from "antd";
-import { useRouter } from "next/navigation";
 
 export default function MoviePagination({
   currentPage,
   total,
-  searchQuery,
+  setPage,
 }: {
   currentPage: number;
   total: number;
-  searchQuery: string;
+  setPage: (page: number) => void;
 }) {
-  const router = useRouter();
-
   return (
     <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
       <Pagination
@@ -22,9 +19,7 @@ export default function MoviePagination({
         pageSize={6}
         size="small"
         showSizeChanger={false}
-        onChange={(page) => {
-          router.push(`/?query=${searchQuery}&page=${page}`);
-        }}
+        onChange={(page) => setPage(page)}
       />
     </div>
   );
