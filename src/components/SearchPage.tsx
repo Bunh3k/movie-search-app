@@ -1,36 +1,28 @@
 "use client";
 
-import { Alert, Col, Row, Spin, Tabs } from "antd";
+import { Alert, Col, Row, Spin } from "antd";
 import { useEffect, useState } from "react";
 import MovieCard from "./MovieCard";
 import MoviePagination from "./MoviePagination";
 import SearchForm from "./SearchForm";
 import type { Movie } from "@/types/movie";
+import { useGuestSession } from "@/hooks/useGuestSession";
+import {
+  UI_PAGE_SIZE,
+  getApiPagination,
+  getVisibleItems,
+  shouldFetchNextPage,
+} from "@/lib/pagination";
 
-const UI_PAGE_SIZE = 6;
-const API_PAGE_SIZE = 20;
-
-export default function MovieApp() {
-  const [guestSessionId, setGuestSessionId] = useState("");
+export default function SearchPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [ratedMovies, setRatedMovies] = useState<Record<number, number>>({});
   const [query, setQuery] = useState("return");
   const [page, setPage] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
-  const [activeTab, setActiveTab] = useState("search");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function initGuestSession() {
-      const res = await fetch("/api/guest-session");
-      const data = await res.json();
-
-      setGuestSessionId(data.guest_session_id);
-    }
-
-    initGuestSession();
-  }, []);
+  const guestSessionId = useGuestSession();
 
   useEffect(() => {
     async function fetchMovies() {
@@ -38,34 +30,7 @@ export default function MovieApp() {
       setError("");
 
       try {
-        if (activeTab === "rated") {
-          if (!guestSessionId) {
-            setMovies([]);
-            setTotalResults(0);
-            return;
-          }
-
-          const params = new URLSearchParams({
-            guestSessionId,
-            page: page.toString(),
-          });
-
-          const res = await fetch(`/api/rated-movies?${params.toString()}`);
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            throw new Error(data.error || "Failed to load rated movies");
-          }
-
-          setMovies(data.results || []);
-          setTotalResults(data.total_results || 0);
-          return;
-        }
-
-        const startIndex = (page - 1) * UI_PAGE_SIZE;
-        const apiPage = Math.floor(startIndex / API_PAGE_SIZE) + 1;
-        const startOffset = startIndex % API_PAGE_SIZE;
+        const { startIndex, apiPage, startOffset } = getApiPagination(page);
 
         const params = new URLSearchParams({
           query,
@@ -81,19 +46,21 @@ export default function MovieApp() {
 
         setTotalResults(data.total_results || 0);
 
-        let visibleMovies = data.results.slice(
-          startOffset,
-          startOffset + UI_PAGE_SIZE,
-        );
+        let visibleMovies = getVisibleItems<Movie>(data.results, startOffset);
 
-        if (visibleMovies.length < UI_PAGE_SIZE) {
+        if (
+          shouldFetchNextPage(
+            visibleMovies.length,
+            startIndex,
+            data.total_results || 0,
+          )
+        ) {
           const nextParams = new URLSearchParams({
             query,
             page: (apiPage + 1).toString(),
           });
 
           const nextRes = await fetch(`/api/movies?${nextParams.toString()}`);
-
           const nextData = await nextRes.json();
 
           visibleMovies = [
@@ -103,41 +70,21 @@ export default function MovieApp() {
         }
 
         setMovies(visibleMovies);
-      } catch (err) {
+      } catch {
         setMovies([]);
         setTotalResults(0);
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        setError("Failed to load movies");
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchMovies();
-  }, [query, page, activeTab, guestSessionId]);
+  }, [query, page]);
 
   return (
-    <main>
-      <div className="page-header">
-        <Tabs
-          activeKey={activeTab}
-          onChange={(key) => {
-            setActiveTab(key);
-            setPage(1);
-            setMovies([]);
-            setTotalResults(0);
-            setError("");
-          }}
-          centered
-          items={[
-            { key: "search", label: "Search" },
-            { key: "rated", label: "Rated" },
-          ]}
-        />
-
-        {activeTab === "search" && (
-          <SearchForm setQuery={setQuery} setPage={setPage} />
-        )}
-      </div>
+    <>
+      <SearchForm setQuery={setQuery} setPage={setPage} />
 
       {error && (
         <Alert
@@ -166,12 +113,23 @@ export default function MovieApp() {
               <MovieCard
                 movie={movie}
                 guestSessionId={guestSessionId}
-                userRating={ratedMovies[movie.id] ?? movie.rating}
-                onRate={(rating) => {
-                  setRatedMovies((prev) => ({
-                    ...prev,
-                    [movie.id]: rating,
-                  }));
+                userRating={ratedMovies[movie.id]}
+                onRate={async (rating) => {
+                  const res = await fetch("/api/rate", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      movieId: movie.id,
+                      rating,
+                      guestSessionId,
+                    }),
+                  });
+
+                  if (res.ok) {
+                    setRatedMovies((prev) => ({
+                      ...prev,
+                      [movie.id]: rating,
+                    }));
+                  }
                 }}
               />
             </Col>
@@ -184,6 +142,6 @@ export default function MovieApp() {
         total={totalResults}
         setPage={setPage}
       />
-    </main>
+    </>
   );
 }

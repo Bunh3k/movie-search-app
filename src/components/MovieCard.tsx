@@ -91,16 +91,21 @@ export default function MovieCard({
               count={10}
               value={userRating ?? movie.vote_average}
               onChange={async (value) => {
-                onRate(value);
-
-                await fetch("/api/rate", {
+                const res = await fetch("/api/rate", {
                   method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
                   body: JSON.stringify({
                     movieId: movie.id,
                     rating: value,
                     guestSessionId,
                   }),
                 });
+
+                if (res.ok) {
+                  onRate(value);
+                }
               }}
             />
           </div>

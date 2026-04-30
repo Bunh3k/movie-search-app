@@ -1,10 +1,5 @@
-import MovieApp from "@/components/MovieApp";
-import { GenresProvider } from "@/contexts/GenresContext";
+import SearchPage from "@/components/SearchPage";
 
 export default function Home() {
-  return (
-    <GenresProvider>
-      <MovieApp />
-    </GenresProvider>
-  );
+  return <SearchPage />;
 }

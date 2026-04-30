@@ -87,3 +87,31 @@ export async function getGenres() {
 
   return res.json();
 }
+
+export async function rateMovie(
+  movieId: number,
+  rating: number,
+  guestSessionId: string,
+) {
+  if (!BASE_URL || !TOKEN) {
+    throw new Error("Missing TMDB env");
+  }
+
+  const res = await fetch(
+    `${BASE_URL}/movie/${movieId}/rating?guest_session_id=${guestSessionId}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${TOKEN}`,
+        "Content-Type": "application/json;charset=utf-8",
+      },
+      body: JSON.stringify({ value: rating }),
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to rate movie: ${res.status}`);
+  }
+
+  return res.json();
+}

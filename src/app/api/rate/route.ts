@@ -1,38 +1,15 @@
-import { NextRequest } from "next/server";
+import { rateMovie } from "@/lib/tmdb";
 
-const BASE_URL = process.env.TMDB_BASE_URL;
-const TOKEN = process.env.TMDB_API_TOKEN;
-
-export async function POST(request: NextRequest) {
-  if (!BASE_URL || !TOKEN) {
-    return Response.json({ error: "Missing TMDB env" }, { status: 500 });
-  }
-
+export async function POST(request: Request) {
   const { movieId, rating, guestSessionId } = await request.json();
 
-  if (!movieId || !rating || !guestSessionId) {
-    return Response.json({ error: "Missing rating data" }, { status: 400 });
-  }
-
-  const res = await fetch(
-    `${BASE_URL}/movie/${movieId}/rating?guest_session_id=${guestSessionId}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        "Content-Type": "application/json;charset=utf-8",
-      },
-      body: JSON.stringify({ value: rating }),
-    },
-  );
-
-  if (!res.ok) {
+  try {
+    const data = await rateMovie(movieId, rating, guestSessionId);
+    return Response.json(data);
+  } catch (error) {
     return Response.json(
-      { error: `Failed to rate movie: ${res.status}` },
-      { status: res.status },
+      { error: error instanceof Error ? error.message : "Failed to rate" },
+      { status: 500 },
     );
   }
-
-  const data = await res.json();
-  return Response.json(data);
 }
