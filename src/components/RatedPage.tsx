@@ -84,16 +84,49 @@ export default function RatedPage() {
     fetchRatedMovies();
   }, [guestSessionId, page]);
 
+  function handleRate(movieId: number, rating: number) {
+    fetch("/api/rate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        movieId,
+        rating,
+        guestSessionId,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to rate movie");
+        }
+      })
+      .then(() => {
+        setRatedMovies((prev) => ({
+          ...prev,
+          [movieId]: rating,
+        }));
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   return (
     <>
       {error && movies.length === 0 && (
-        <Alert
-          title="Error"
-          description={error}
-          type="error"
-          showIcon
-          style={{ marginBottom: 20 }}
-        />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: 40,
+          }}
+        >
+          <p>There is no rated movie yet😉</p>
+          <p>Pick one!!</p>
+        </div>
       )}
 
       {isLoading ? (
@@ -114,22 +147,8 @@ export default function RatedPage() {
                 movie={movie}
                 guestSessionId={guestSessionId}
                 userRating={ratedMovies[movie.id] ?? movie.rating}
-                onRate={async (rating) => {
-                  const res = await fetch("/api/rate", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      movieId: movie.id,
-                      rating,
-                      guestSessionId,
-                    }),
-                  });
-
-                  if (res.ok) {
-                    setRatedMovies((prev) => ({
-                      ...prev,
-                      [movie.id]: rating,
-                    }));
-                  }
+                onRate={(rating) => {
+                  handleRate(movie.id, rating);
                 }}
               />
             </Col>

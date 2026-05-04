@@ -82,6 +82,34 @@ export default function SearchPage() {
     fetchMovies();
   }, [query, page]);
 
+  function handleRate(movieId: number, rating: number) {
+    fetch("/api/rate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        movieId,
+        rating,
+        guestSessionId,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to rate movie");
+        }
+      })
+      .then(() => {
+        setRatedMovies((prev) => ({
+          ...prev,
+          [movieId]: rating,
+        }));
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   return (
     <>
       <SearchForm setQuery={setQuery} setPage={setPage} />
@@ -114,23 +142,7 @@ export default function SearchPage() {
                 movie={movie}
                 guestSessionId={guestSessionId}
                 userRating={ratedMovies[movie.id]}
-                onRate={async (rating) => {
-                  const res = await fetch("/api/rate", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      movieId: movie.id,
-                      rating,
-                      guestSessionId,
-                    }),
-                  });
-
-                  if (res.ok) {
-                    setRatedMovies((prev) => ({
-                      ...prev,
-                      [movie.id]: rating,
-                    }));
-                  }
-                }}
+                onRate={(rating) => handleRate(movie.id, rating)}
               />
             </Col>
           ))}

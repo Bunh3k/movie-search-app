@@ -43,6 +43,32 @@ export default function MovieCard({
 
   const genres = useGenres();
 
+  function handleRate(value: number) {
+    fetch("/api/rate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        movieId: movie.id,
+        rating: value,
+        guestSessionId,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to rate");
+        }
+        return res.json();
+      })
+      .then(() => {
+        onRate(value);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   return (
     <Card className={styles.card} classNames={{ body: styles.cardBody }}>
       <div className={styles.cardContent}>
@@ -72,7 +98,7 @@ export default function MovieCard({
           <p className={styles.date}>{formattedDate}</p>
 
           <div className={styles.genres}>
-            {movie.genre_ids.slice(0, 2).map((genreId) => {
+            {movie.genre_ids.map((genreId) => {
               const genre = genres.find((item) => item.id === genreId);
 
               return (
@@ -90,23 +116,7 @@ export default function MovieCard({
               allowHalf
               count={10}
               value={userRating ?? movie.vote_average}
-              onChange={async (value) => {
-                const res = await fetch("/api/rate", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    movieId: movie.id,
-                    rating: value,
-                    guestSessionId,
-                  }),
-                });
-
-                if (res.ok) {
-                  onRate(value);
-                }
-              }}
+              onChange={handleRate}
             />
           </div>
         </div>

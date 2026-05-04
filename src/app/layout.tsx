@@ -1,3 +1,4 @@
+import { GenresProvider } from "@/contexts/GenresContext";
 import "./globals.css";
 import AppTabs from "@/components/AppTabs";
 
@@ -9,13 +10,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <main>
-          <div className="page-header">
-            <AppTabs />
-          </div>
+        <GenresProvider>
+          <main>
+            <div className="page-header">
+              <AppTabs />
+            </div>
 
-          {children}
-        </main>
+            {children}
+          </main>
+        </GenresProvider>
       </body>
     </html>
   );
