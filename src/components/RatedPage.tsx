@@ -142,7 +142,7 @@ export default function RatedPage() {
       ) : (
         <Row gutter={[16, 16]}>
           {movies.map((movie) => (
-            <Col span={12} key={movie.id}>
+            <Col xs={24} md={12} key={movie.id}>
               <MovieCard
                 movie={movie}
                 guestSessionId={guestSessionId}

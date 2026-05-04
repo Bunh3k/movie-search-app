@@ -99,3 +99,82 @@
 .rate {
     font-size: 18px;
 }
+
+@media (max-width: 600px) {
+    .card {
+        height: auto;
+    }
+
+    .cardContent {
+        display: block;
+        padding: 16px;
+    }
+
+    .posterWrapper {
+        float: left;
+        width: 100px;
+        height: 150px;
+        margin-right: 16px;
+        margin-bottom: 12px;
+    }
+
+    .poster {
+        width: 100%;
+    }
+
+    .info {
+        padding: 0;
+        display: block;
+    }
+
+    .header {
+        position: relative;
+        min-height: 48px;
+        padding-right: 52px;
+    }
+
+    .title {
+        font-size: 24px;
+        line-height: 30px;
+    }
+
+    .ratingCircle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 44px;
+        height: 44px;
+        font-size: 14px;
+    }
+
+    .date {
+        font-size: 14px;
+        margin-top: 12px;
+    }
+
+    .genres {
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .genre {
+        line-height: 24px;
+    }
+
+    .overview {
+        clear: both;
+        margin: 18px 0 0;
+        font-size: 16px;
+        line-height: 28px;
+    }
+
+    .rateWrapper {
+        margin-top: 22px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .rate {
+        font-size: 22px;
+    }
+}
