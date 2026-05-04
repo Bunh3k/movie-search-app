@@ -98,7 +98,7 @@ export default function MovieCard({
           <p className={styles.date}>{formattedDate}</p>
 
           <div className={styles.genres}>
-            {movie.genre_ids.map((genreId) => {
+            {movie.genre_ids.slice(0, 3).map((genreId) => {
               const genre = genres.find((item) => item.id === genreId);
 
               return (
